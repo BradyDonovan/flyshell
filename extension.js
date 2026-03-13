@@ -462,8 +462,13 @@ class FlightTrackerIndicator {
             if (this._flightFinished)
                 return;
 
-            const queryId = this._faFlightId || ident;
-            const result = await this._runPython(['query', '--ident', queryId]);
+            let result;
+            if (this._faFlightId) {
+                result = await this._runPython(['query', '--ident', this._faFlightId, '--ident-type', 'fa_flight_id']);
+            } else {
+                result = await this._runPython(['query', '--ident', ident]);
+            }
+
             if (!result.selected) {
                 this._renderer.setText(`${ident} --`);
                 this._setStatus(result.message || 'No in-flight match found');

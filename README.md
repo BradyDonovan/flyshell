@@ -2,6 +2,10 @@
 
 GNOME Shell extension that displays a selected in-flight identifier and progress percentage in the top bar.
 
+![screenshot of top bar flight tracker showing a 70% completed flight progress bar](imgs/topbar.png)
+
+![a configuration menu showing what can be configured for flyshell](imgs/menu.png)
+
 ## Behavior
 
 - Uses FlightAware AeroAPI endpoint: `GET /flights/{ident}`.
@@ -36,8 +40,8 @@ Preferred:
 Manual fallback:
 
 ```bash
-mkdir -p ~/.local/share/gnome-shell/extensions
-cp -r flyshell@flyshell ~/.local/share/gnome-shell/extensions/
+mkdir -p ~/.local/share/gnome-shell/extensions/flyshell@flyshell
+rsync -a --exclude='.git/' --exclude='.gitignore' --exclude='README.md' --exclude='__pycache__/' ./ ~/.local/share/gnome-shell/extensions/flyshell@flyshell/
 glib-compile-schemas ~/.local/share/gnome-shell/extensions/flyshell@flyshell/schemas
 gnome-extensions enable flyshell@flyshell
 ```

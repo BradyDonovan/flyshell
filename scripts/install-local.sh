@@ -22,7 +22,13 @@ if [[ -d "${DEST_DIR}" ]]; then
     echo "Backed up existing install to: ${backup}"
 fi
 
-cp -r "${SRC_DIR}" "${DEST_DIR}"
+mkdir -p "${DEST_DIR}"
+rsync -a --delete \
+    --exclude='.git/' \
+    --exclude='.gitignore' \
+    --exclude='README.md' \
+    --exclude='__pycache__/' \
+    "${SRC_DIR}/" "${DEST_DIR}/"
 echo "Installed to: ${DEST_DIR}"
 
 if [[ -d "${DEST_DIR}/schemas" ]]; then

@@ -8,7 +8,12 @@ DEST_DIR="${DEST_ROOT}/${EXT_UUID}"
 
 echo "==> Installing extension to ${DEST_DIR}"
 mkdir -p "${DEST_DIR}"
-rsync -a --delete --exclude='scripts/dev-session.sh' --exclude='scripts/install-local.sh' --exclude='__pycache__/' "${SRC_DIR}/" "${DEST_DIR}/"
+rsync -a --delete \
+    --exclude='.git/' \
+    --exclude='.gitignore' \
+    --exclude='README.md' \
+    --exclude='__pycache__/' \
+    "${SRC_DIR}/" "${DEST_DIR}/"
 
 # Compile GSettings schemas if present
 if [[ -d "${DEST_DIR}/schemas" ]]; then
@@ -40,6 +45,9 @@ fi
 echo "==> Detected GNOME ${GNOME_VERSION}, using ${NESTED_FLAG}"
 
 export FLYSHELL_API_KEY="${API_KEY}"
+
+# Resolution for the nested Mutter/GNOME Shell window (WIDTHxHEIGHT[@SCALE])
+export MUTTER_DEBUG_DUMMY_MODE_SPECS="${MUTTER_DEBUG_DUMMY_MODE_SPECS:-2560x1440@2}"
 
 dbus-run-session -- bash -c '
     gnome-shell '"${NESTED_FLAG}"' --wayland &

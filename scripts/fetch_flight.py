@@ -134,14 +134,8 @@ def _find_completed_flight(payload: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def _fetch_flights_payload(ident: str, timeout: int) -> dict[str, Any]:
-    """Fetch the flights payload from AeroAPI for the given ident."""
-    api_key = load_api_key()
-    if not api_key:
-        raise RuntimeError("API key not configured")
-
-    encoded_ident = quote(ident, safe="")
-    url = f"{API_BASE}/flights/{encoded_ident}"
+def _api_request(url: str, api_key: str, timeout: int) -> dict[str, Any]:
+    """Make a GET request to the AeroAPI and return parsed JSON."""
     req = Request(
         url,
         headers={
@@ -166,8 +160,34 @@ def _fetch_flights_payload(ident: str, timeout: int) -> dict[str, Any]:
         raise RuntimeError(f"Invalid JSON from API: {exc}") from exc
 
 
-def query_flight(ident: str, timeout: int) -> dict[str, Any]:
-    payload = _fetch_flights_payload(ident, timeout)
+def _fetch_flights_payload(ident: str, timeout: int, ident_type: str | None = None) -> dict[str, Any]:
+    """Fetch the flights payload from AeroAPI for the given ident."""
+    api_key = load_api_key()
+    if not api_key:
+        raise RuntimeError("API key not configured")
+
+    encoded_ident = quote(ident, safe="")
+    url = f"{API_BASE}/flights/{encoded_ident}"
+    if ident_type:
+        url += f"?ident_type={quote(ident_type, safe='')}"
+    return _api_request(url, api_key, timeout)
+
+
+def _build_selected(flight: dict[str, Any], fallback_ident: str) -> dict[str, Any]:
+    departure = flight.get("scheduled_out") or flight.get("estimated_out") or ""
+    arrival = flight.get("estimated_in") or flight.get("scheduled_in") or ""
+    return {
+        "ident": flight.get("ident") or fallback_ident,
+        "fa_flight_id": flight.get("fa_flight_id") or "",
+        "status": flight.get("status") or "",
+        "progress_percent": flight.get("progress_percent", 0),
+        "departure": departure,
+        "arrival": arrival,
+    }
+
+
+def query_flight(ident: str, timeout: int, ident_type: str | None = None) -> dict[str, Any]:
+    payload = _fetch_flights_payload(ident, timeout, ident_type=ident_type)
 
     selected = choose_best_flight(payload)
     if not selected:
@@ -178,19 +198,7 @@ def query_flight(ident: str, timeout: int) -> dict[str, Any]:
                 "message": "No en route flight with progress between 0 and 100",
             }
 
-    departure = selected.get("scheduled_out") or selected.get("estimated_out") or ""
-    arrival = selected.get("estimated_in") or selected.get("scheduled_in") or ""
-
-    return {
-        "selected": {
-            "ident": selected.get("ident") or ident,
-            "fa_flight_id": selected.get("fa_flight_id") or "",
-            "status": selected.get("status") or "",
-            "progress_percent": selected.get("progress_percent", 0),
-            "departure": departure,
-            "arrival": arrival,
-        }
-    }
+    return {"selected": _build_selected(selected, ident)}
 
 
 def fetch_offline(ident: str, timeout: int) -> dict[str, Any]:
@@ -228,6 +236,8 @@ def main() -> int:
 
     query_parser = subparsers.add_parser("query")
     query_parser.add_argument("--ident", required=True)
+    query_parser.add_argument("--ident-type", default=None, dest="ident_type",
+                              choices=["designator", "registration", "fa_flight_id"])
     query_parser.add_argument("--timeout", type=int, default=10)
 
     fetch_parser = subparsers.add_parser("fetch-offline")
@@ -246,10 +256,13 @@ def main() -> int:
             store_api_key(api_key)
             result = {"stored": True}
         elif args.command == "query":
-            ident = args.ident.strip().upper()
+            ident = args.ident.strip()
+            if args.ident_type != "fa_flight_id":
+                ident = ident.upper()
             if not ident:
                 raise RuntimeError("Empty flight identifier")
-            result = query_flight(ident, max(3, min(args.timeout, 30)))
+            result = query_flight(ident, max(3, min(args.timeout, 30)),
+                                  ident_type=args.ident_type)
         elif args.command == "fetch-offline":
             ident = args.ident.strip().upper()
             if not ident:
