@@ -1,0 +1,40 @@
+/*
+ * This class is toggled by extension.js and gives us a stable target for
+ * future top-bar sizing and layout changes.
+ */
+#panel.flyshell-enabled {
+    transition: min-height 180ms ease;
+}
+
+.flyshell-indicator {
+    padding: 0 8px;
+}
+
+.flyshell-menu-row {
+    spacing: 6px;
+    min-width: 280px;
+}
+
+.flyshell-row-label {
+    font-size: 0.9em;
+    opacity: 0.85;
+}
+
+.flyshell-row-controls {
+    spacing: 8px;
+}
+
+.flyshell-entry {
+    min-width: 160px;
+}
+
+.flyshell-button {
+    padding: 4px 10px;
+}
+
+/* ── Text-based progress bar ── */
+
+.flyshell-progress-label {
+    font-family: monospace;
+    font-size: 1em;
+}

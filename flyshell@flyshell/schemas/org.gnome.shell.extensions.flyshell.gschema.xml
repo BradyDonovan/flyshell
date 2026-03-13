@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.flyshell"
+          path="/org/gnome/shell/extensions/flyshell/">
+    <key name="flight-ident" type="s">
+      <default>''</default>
+      <summary>Flight identifier to track</summary>
+      <description>
+        Flight identifier such as UAL1234. The extension queries AeroAPI and
+        picks the in-progress flight based on status and progress percentage.
+      </description>
+    </key>
+
+    <key name="poll-seconds" type="i">
+      <default>60</default>
+      <range min="15" max="3600"/>
+      <summary>Polling rate in seconds</summary>
+      <description>
+        The refresh interval for querying flight status.
+      </description>
+    </key>
+
+    <key name="display-mode" type="s">
+      <default>'percentage'</default>
+      <summary>Display mode</summary>
+      <description>
+        How flight progress is shown in the top bar.
+        "percentage" shows a text label like "UAL1234 42%".
+        "progress-bar" shows an animated airplane emoji moving across a
+        progress track.
+      </description>
+    </key>
+
+    <key name="debug-mode" type="b">
+      <default>false</default>
+      <summary>Debug mode</summary>
+      <description>
+        When enabled, the extension uses bundled mock flight data with a
+        1-second polling interval instead of querying the live API.
+      </description>
+    </key>
+
+    <key name="offline-mode" type="b">
+      <default>false</default>
+      <summary>Offline mode</summary>
+      <description>
+        When enabled, the extension fetches flight data once and then
+        calculates progress locally from the current time relative to
+        departure and arrival timestamps. No further API calls
+        are made until offline mode is disabled.
+      </description>
+    </key>
+
+    <key name="offline-ident" type="s">
+      <default>''</default>
+      <summary>Offline flight identifier</summary>
+      <description>
+        The flight identifier cached when offline mode was activated.
+      </description>
+    </key>
+
+    <key name="offline-departure" type="s">
+      <default>''</default>
+      <summary>Offline departure timestamp</summary>
+      <description>
+        ISO 8601 departure timestamp cached for offline progress calculation
+        (resolved from scheduled_out or estimated_out).
+      </description>
+    </key>
+
+    <key name="offline-arrival" type="s">
+      <default>''</default>
+      <summary>Offline arrival timestamp</summary>
+      <description>
+        ISO 8601 arrival timestamp cached for offline progress calculation
+        (resolved from estimated_in or scheduled_in).
+      </description>
+    </key>
+  </schema>
+</schemalist>

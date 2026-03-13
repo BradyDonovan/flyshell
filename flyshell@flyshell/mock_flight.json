@@ -1,0 +1,19 @@
+{
+  "mock_config": {
+    "duration_seconds": 10,
+    "poll_interval_seconds": 1
+  },
+  "snapshots": [
+    { "progress_percent": 0,   "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 10,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 20,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 30,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 40,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 50,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 60,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 70,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 80,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 90,  "status": "En Route / On Time", "ident": "MOCK001" },
+    { "progress_percent": 100, "status": "Arrived",            "ident": "MOCK001" }
+  ]
+}

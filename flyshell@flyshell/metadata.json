@@ -1,0 +1,9 @@
+{
+  "uuid": "flyshell@flyshell",
+  "name": "flyshell",
+  "description": "Track in-progress flights in the GNOME top bar using FlightAware AeroAPI.",
+  "version": 1,
+  "settings-schema": "org.gnome.shell.extensions.flyshell",
+  "shell-version": ["45", "46", "47", "48"],
+  "url": "https://github.com/BradyDonovan/flyshell"
+}
