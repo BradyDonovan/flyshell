@@ -15,7 +15,9 @@ Supports GNOME Shell 45–48.
 - Two display modes — **percentage** (`UAL1234 42%`) or **progress bar** (`UAL1234 ─────✈─── 45%`).
 - **Offline mode** — fetch timestamps once, then compute progress locally with no further API calls.
 - **Debug mode** — iterate through bundled mock snapshots without needing an API key.
-- Click-menu for all configuration: flight ID, poll rate, API key, display mode, offline/debug toggles.
+- **Disable toggle** — stop all polling and show a disabled status without uninstalling the extension.
+- **Click-to-copy status** — click the status line in the menu to copy it to the clipboard.
+- Click-menu for all configuration: flight ID, poll rate, API key, display mode, offline/debug/disable toggles.
 - Preferences window (GNOME Extensions app) with the same settings.
 
 ## Display modes
@@ -66,6 +68,7 @@ preferences window.
 | Display mode | percentage | percentage / progress-bar | Top-bar format |
 | Debug mode | off | — | Use bundled mock data instead of live API |
 | Offline mode | off | — | Fetch once, compute progress locally |
+| Disabled | on | — | Stop all polling and show a disabled status |
 
 ## Security and stability notes
 

@@ -55,8 +55,7 @@
       <default>true</default>
       <summary>Disable tracker</summary>
       <description>
-        When enabled, the extension stops all polling and queries.
-        The panel indicator is hidden until re-enabled.
+        When enabled, the extension stops all polling and queries, effectively pausing the flight tracker.
       </description>
     </key>
 
