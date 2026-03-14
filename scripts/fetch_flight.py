@@ -4,6 +4,7 @@
 Commands:
 - has-key: returns whether API key exists in keyring
 - set-key: stores API key from stdin in keyring
+- clear-key: removes API key from keyring
 - query --ident IDENT: queries FlightAware and selects in-progress flight
 """
 
@@ -74,6 +75,19 @@ def store_api_key(api_key: str) -> None:
     if proc.returncode != 0:
         stderr = (proc.stderr or "").strip()
         raise RuntimeError(stderr or "Failed to store API key in keyring")
+
+
+def clear_api_key() -> None:
+    try:
+        proc = _run_secret_tool(["clear", "service", SERVICE_ATTR, "account", ACCOUNT_ATTR])
+    except FileNotFoundError as exc:
+        raise RuntimeError("secret-tool was not found; install libsecret tools") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("Timed out while clearing API key") from exc
+
+    if proc.returncode != 0:
+        stderr = (proc.stderr or "").strip()
+        raise RuntimeError(stderr or "Failed to clear API key from keyring")
 
 
 def _safe_progress(value: Any) -> float | None:
@@ -234,6 +248,8 @@ def main() -> int:
 
     subparsers.add_parser("set-key")
 
+    subparsers.add_parser("clear-key")
+
     query_parser = subparsers.add_parser("query")
     query_parser.add_argument("--ident", required=True)
     query_parser.add_argument("--ident-type", default=None, dest="ident_type",
@@ -255,6 +271,9 @@ def main() -> int:
                 raise RuntimeError("Empty API key")
             store_api_key(api_key)
             result = {"stored": True}
+        elif args.command == "clear-key":
+            clear_api_key()
+            result = {"cleared": True}
         elif args.command == "query":
             ident = args.ident.strip()
             if args.ident_type != "fa_flight_id":

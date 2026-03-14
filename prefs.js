@@ -43,6 +43,18 @@ export default class FlyshellPrefs extends ExtensionPreferences {
 
         displayGroup.add(displayRow);
 
+        /* ── Disable tracker ── */
+        const disableGroup = new Adw.PreferencesGroup({title: 'Tracker'});
+        page.add(disableGroup);
+
+        const disableRow = new Adw.SwitchRow({
+            title: 'Disable Tracker',
+            subtitle: 'Stop all polling and hide the panel indicator',
+        });
+        disableGroup.add(disableRow);
+
+        settings.bind('disabled', disableRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         /* ── Offline mode ── */
         const offlineGroup = new Adw.PreferencesGroup({title: 'Offline Mode'});
         page.add(offlineGroup);

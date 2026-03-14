@@ -51,6 +51,15 @@
       </description>
     </key>
 
+    <key name="disabled" type="b">
+      <default>true</default>
+      <summary>Disable tracker</summary>
+      <description>
+        When enabled, the extension stops all polling and queries.
+        The panel indicator is hidden until re-enabled.
+      </description>
+    </key>
+
     <key name="offline-ident" type="s">
       <default>''</default>
       <summary>Offline flight identifier</summary>

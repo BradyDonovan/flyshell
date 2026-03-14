@@ -39,8 +39,13 @@ class FlightTrackerIndicator {
         );
 
         this._statusItem = new PopupMenu.PopupMenuItem('Waiting for configuration...', {
-            reactive: false,
-            can_focus: false,
+            reactive: true,
+            can_focus: true,
+        });
+        this._statusItem.connect('activate', () => {
+            const text = this._statusItem.label?.text;
+            if (text)
+                St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, text);
         });
         this.actor.menu.addMenuItem(this._statusItem);
         this.actor.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -75,7 +80,13 @@ class FlightTrackerIndicator {
         this._apiKeyEntry = this._createEntryRow('API key', '', 'Save key', async () => {
             const key = this._apiKeyEntry.get_text().trim();
             if (!key) {
-                this._setStatus('API key is empty');
+                try {
+                    await this._runPython(['clear-key']);
+                    this._setStatus('API key cleared from keyring');
+                } catch (error) {
+                    console.error(`[${this._extension.uuid}] clear-key failed: ${error?.stack || error}`);
+                    this._setStatus(`Failed to clear API key: ${error.message}`);
+                }
                 return;
             }
 
@@ -99,6 +110,15 @@ class FlightTrackerIndicator {
 
         this.actor.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        this._disableToggle = new PopupMenu.PopupSwitchMenuItem(
+            'Disable Tracker',
+            this._settings.get_boolean('disabled')
+        );
+        this._disableToggle.connect('toggled', (_item, state) => {
+            this._settings.set_boolean('disabled', state);
+        });
+        this.actor.menu.addMenuItem(this._disableToggle);
+
         this._displayModeToggle = new PopupMenu.PopupSwitchMenuItem(
             'Show Progress Bar',
             this._getDisplayMode() === 'progress-bar'
@@ -108,15 +128,6 @@ class FlightTrackerIndicator {
         });
         this.actor.menu.addMenuItem(this._displayModeToggle);
 
-        this._debugToggle = new PopupMenu.PopupSwitchMenuItem(
-            'Debug Mode',
-            this._settings.get_boolean('debug-mode')
-        );
-        this._debugToggle.connect('toggled', (_item, state) => {
-            this._settings.set_boolean('debug-mode', state);
-        });
-        this.actor.menu.addMenuItem(this._debugToggle);
-
         this._offlineToggle = new PopupMenu.PopupSwitchMenuItem(
             'Offline Mode',
             this._settings.get_boolean('offline-mode')
@@ -125,6 +136,15 @@ class FlightTrackerIndicator {
             this._settings.set_boolean('offline-mode', state);
         });
         this.actor.menu.addMenuItem(this._offlineToggle);
+
+        this._debugToggle = new PopupMenu.PopupSwitchMenuItem(
+            'Debug Mode',
+            this._settings.get_boolean('debug-mode')
+        );
+        this._debugToggle.connect('toggled', (_item, state) => {
+            this._settings.set_boolean('debug-mode', state);
+        });
+        this.actor.menu.addMenuItem(this._debugToggle);
 
         this._replayItem = new PopupMenu.PopupMenuItem('Replay Mock Flight');
         this._replayItem.connect('activate', () => {
@@ -157,14 +177,24 @@ class FlightTrackerIndicator {
                 this._displayModeToggle.setToggleState(this._getDisplayMode() === 'progress-bar');
             this._renderer.applyDisplayMode(this._getDisplayMode());
         });
+        this._disabledChangedId = this._settings.connect('changed::disabled', () => {
+            if (this._disableToggle)
+                this._disableToggle.setToggleState(this._settings.get_boolean('disabled'));
+            this._onDisabledChanged();
+        });
         this._offlineChangedId = this._settings.connect('changed::offline-mode', () => {
             if (this._offlineToggle)
                 this._offlineToggle.setToggleState(this._settings.get_boolean('offline-mode'));
             this._onOfflineModeChanged();
         });
 
-        this._setStatus('Configure API key on first use');
-        this._pollManager.schedule(1);
+        if (this._isDisabled()) {
+            this._renderer.setText('Flight: disabled');
+            this._setStatus('Tracker disabled');
+        } else {
+            this._setStatus('Configure API key on first use');
+            this._pollManager.schedule(1);
+        }
     }
 
     destroy() {
@@ -188,6 +218,11 @@ class FlightTrackerIndicator {
         if (this._displayModeChangedId) {
             this._settings.disconnect(this._displayModeChangedId);
             this._displayModeChangedId = 0;
+        }
+
+        if (this._disabledChangedId) {
+            this._settings.disconnect(this._disabledChangedId);
+            this._disabledChangedId = 0;
         }
 
         if (this._offlineChangedId) {
@@ -295,6 +330,23 @@ class FlightTrackerIndicator {
     }
 
     /* ── Offline mode ── */
+
+    _isDisabled() {
+        return this._settings.get_boolean('disabled');
+    }
+
+    _onDisabledChanged() {
+        if (this._isDisabled()) {
+            this._pollManager.destroy();
+            this._renderer.setText('Flight: disabled');
+            this._setStatus('Tracker disabled');
+        } else {
+            this._flightFinished = false;
+            this._faFlightId = null;
+            this._setStatus('Tracker re-enabled');
+            this._pollManager.pollNow();
+        }
+    }
 
     _isOfflineMode() {
         return this._settings.get_boolean('offline-mode');
@@ -405,6 +457,9 @@ class FlightTrackerIndicator {
 
     async _doPoll() {
         try {
+            if (this._isDisabled())
+                return;
+
             if (this._isDebugMode()) {
                 this._pollMock();
                 return;
